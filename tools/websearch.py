@@ -1,22 +1,23 @@
+"""
+WebSearchTool - A tool for performing web searches using DuckDuckGo and our custom search implementation.
+This tool implements the ToolInterface and registers a 'websearch' function that queries DuckDuckGo,
+fetches the content from resulting URLs, and returns an aggregated text.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from core.utils.logger import get_logger
 import logging
 from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
+from typing import List, Callable
+from core.tools.tool_interface import ToolInterface  # Refactored naming
+from core.tools.tool_context import ToolContext      # Refactored naming
 
 class WebSearch:
     def __init__(self, max_results=7, concurrency=5):
         """
         Initialize WebSearch with configurable parameters.
-
-        Args:
-            max_results (int): Maximum number of search results to fetch (default: 7).
-            concurrency (int): Maximum number of concurrent requests (default: 5).
-
-        Usage:
-            web_search = WebSearch()
-            result = web_search.search("query")
         """
         self.logger = get_logger()
         self.max_results = max_results
@@ -35,7 +36,7 @@ class WebSearch:
         wait=wait_exponential(multiplier=2, min=2, max=10),
         before_sleep=before_sleep_log(get_logger(), logging.WARNING)
     )
-    def fetch_url(self, url: str) -> tuple[str, str]:
+    def fetch_url(self, url: str) -> tuple:
         """
         Fetch URL content with retries and error handling synchronously.
         """
@@ -79,3 +80,28 @@ class WebSearch:
 
         self.logger.info(f"Web search for query '{query}' completed successfully.")
         return aggregated_text.strip()
+
+class WebSearchTool(ToolInterface):
+    @property
+    def name(self) -> str:
+        return "WebSearchTool"
+
+    def register(self, context: ToolContext) -> List[Callable]:
+        context.success("Registering WebSearchTool.")
+
+        # Instantiate our local WebSearch implementation.
+        web_search_instance = WebSearch()
+
+        def websearch(query: str) -> str:
+            context.info(f"Performing web search for: {query}")
+            return web_search_instance.search(query)
+
+        return [websearch]
+
+def register():
+    try:
+        return WebSearchTool()
+    except Exception as e:
+        from core.utils.logger import get_logger
+        get_logger().error(f"Error during websearch_tool registration: {e}")
+        return None

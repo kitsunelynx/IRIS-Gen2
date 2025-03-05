@@ -1,4 +1,4 @@
-from core.core_engine import IRISCore
+from core.core import IRISCore
 
 def main():
     iris = IRISCore()

@@ -8,7 +8,6 @@ import asyncio
 from core.agents.iris_agent import IRISAgent
 from core.utils.logger import get_logger
 from core.tools.tool_manager import ToolManager
-from core.utils.web_search import WebSearch
 from core.utils.ui import UIHandler
 from core.config.config_manager import ConfigManager
 from core.utils.error_handler import handle_errors
@@ -51,7 +50,6 @@ class IRISCore:
         self.logger.success("System prompt loaded.")
 
         self.logger.success("Loading web search module...")
-        self.web_search = WebSearch()
 
         self.logger.success("Loading tools...")
         self.tool_manager = ToolManager()
@@ -64,7 +62,6 @@ class IRISCore:
             self.store_memory,
             self.write_persistent_memory,
             self.read_persistent_memory,
-            self.web_search.search
         ]
         all_tools = tools + integrated_tools
 

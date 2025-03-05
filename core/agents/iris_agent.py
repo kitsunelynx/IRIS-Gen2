@@ -1,6 +1,5 @@
 import os
 from core.llms.gemini import Gemini
-from core.llms.grok import Grok
 from google.genai import types
 from dotenv import load_dotenv
 from core.utils.logger import get_logger
@@ -20,23 +19,14 @@ class IRISAgent:
         """
         self.logger = get_logger()
         self.memory = memory if memory is not None else []  # Ensure memory is a list, not None.
-        # Instantiate the Grok agent with memory integration
-        self.grok_agent = Grok(system_prompt, memory=memory)
         
         # Track tool names for status updates
         self.tools = tools or []
-        self.tool_names = {}
-        for tool in self.tools:
-            if hasattr(tool, "__name__"):
-                self.tool_names[tool.__name__] = self._get_friendly_tool_name(tool.__name__)
-        
-        # Merge provided tools with Grok's response tool
-        combined_tools = self.tools + [self.grok_agent.grok_response]
         
         generate_conf = config.get("generate_config", {})
         gemini_config = types.GenerateContentConfig(
             system_instruction=system_prompt,
-            tools=combined_tools,
+            tools=self.tools,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(
                 disable=generate_conf.get("automatic_function_calling_disable", False)
             ),
@@ -138,7 +128,7 @@ class IRISAgent:
             command = parameters.get("command")
             if command:
                 try:
-                    from tools.command_tool import execute_command_tool
+                    from tools.cli_command import execute_command_tool
                     result = execute_command_tool(command)
                     self.logger.success(f"[IRISAgent] Command output: {result}")
                 except Exception as e:

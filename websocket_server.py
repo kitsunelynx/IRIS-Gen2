@@ -4,7 +4,7 @@ import uvicorn
 import json
 
 # Import the IRISCore object from our backend.
-from core.core_engine import IRISCore
+from core.core import IRISCore
 
 app = FastAPI()
 
