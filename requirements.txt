@@ -1,0 +1,10 @@
+google-generativeai
+wikipedia
+duckduckgo_search
+kokoro
+pysoundfile
+psutil
+grokit
+python-dotenv
+wolframalpha
+pyttsx3

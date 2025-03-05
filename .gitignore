@@ -1,0 +1,11 @@
+*.wav
+memory.id
+persistent_memory.id
+*.env
+*.pdf
+chatlog.json
+test.py
+alayn/
+additional/
+__pycache__/
+iris.log
