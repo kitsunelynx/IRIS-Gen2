@@ -11,9 +11,10 @@ from grokit import Grokit
 
 auth_token = os.environ.get("GROKIT_AUTH_TOKEN")
 csrf_token = os.environ.get("GROKIT_CSRF_TOKEN")
-grok = Grokit(auth_token=auth_token, csrf_token=csrf_token)
+grok_llm = Grokit(auth_token=auth_token, csrf_token=csrf_token)
 
 class GrokTool(ToolInterface):
+    
     @property
     def name(self) -> str:
         return "GrokTool"
@@ -23,7 +24,7 @@ class GrokTool(ToolInterface):
 
         def grok(query: str) -> str:
             context.info(f"Performing Grok analysis for: {query}")
-            result = grok.generate(query, model='grok-3')
+            result = grok_llm.generate(query, model_id='grok-3')
             context.success("Grok analysis completed.")
             return f"Grok result: {result}"
         
