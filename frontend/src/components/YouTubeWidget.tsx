@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import '../components/ChatWindow.css';
 import { getNextZIndex } from '../utils/stackManager';
 
-const ArrowUp: React.FC<{ size?: number }> = ({ size }) => <ArrowUpwardIcon style={{ fontSize: size }} />;
-const ArrowDown: React.FC<{ size?: number }> = ({ size }) => <ArrowDownwardIcon style={{ fontSize: size }} />;
-
-const DateWidget: React.FC = () => {
+const YouTubeWidget: React.FC<{ videoId: string }> = ({ videoId }) => {
   const [minimized, setMinimized] = useState(false);
-  const [position, setPosition] = useState({ x: 450, y: 200 });
+  const [position, setPosition] = useState({ x: 450, y: 400 }); // initial coordinates
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [date, setDate] = useState(new Date());
   const [zIndex, setZIndex] = useState(1);
 
   const toggleMinimize = () => setMinimized(!minimized);
@@ -51,16 +45,6 @@ const DateWidget: React.FC = () => {
     };
   }, [dragging, offset]);
 
-  // Update the date every minute (actual change only occurs at midnight)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDate(new Date());
-    }, 60 * 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedDate = date.toLocaleDateString();
-
   return (
     <div
       className={`chat-window ${minimized ? 'widget-popout' : 'widget-popup'}`}
@@ -68,39 +52,44 @@ const DateWidget: React.FC = () => {
         position: 'absolute',
         left: position.x,
         top: position.y,
-        width: '200px',
-        height: minimized ? '40px' : '80px',
+        width: '640px',
+        height: minimized ? '40px' : '360px',
         zIndex: zIndex,
       }}
     >
       <div
         className="chat-titlebar"
         onMouseDown={handleMouseDown}
-        style={{ cursor: 'move', userSelect: 'none', padding: '5px 10px' }}
+        style={{ cursor: 'move', userSelect: 'none' }}
       >
-        <span className="chat-title" style={{ fontSize: '0.9rem' }}>DATE</span>
+        <span className="chat-title">YOUTUBE</span>
         <button className="minimize-button" onClick={toggleMinimize}>
-          {minimized ? <span style={{ fontSize: 20 }}>+</span> : <span style={{ fontSize: 20 }}>–</span>}
+          {minimized ? <span style={{ fontSize: 24 }}>+</span> : <span style={{ fontSize: 24 }}>–</span>}
         </button>
       </div>
       {!minimized && (
         <div
           className="chat-content"
           style={{
-            padding: '10px',
+            padding: 0,
+            background: '#000',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            background: '#15202b',
+            alignItems: 'center',
           }}
         >
-          <div style={{ fontSize: '1rem', color: '#f1f1f1', textAlign: 'center' }}>
-            {formattedDate}
-          </div>
+          <iframe
+            width="640"
+            height="360"
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title="YOUTUBE"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          ></iframe>
         </div>
       )}
     </div>
   );
 };
 
-export default DateWidget; 
+export default YouTubeWidget; 

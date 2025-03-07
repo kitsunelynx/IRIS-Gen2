@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import '../components/ChatWindow.css';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatTitleBar from './ChatTitleBar';
+import { getNextZIndex } from '../utils/stackManager';
 
 interface Message {
   id: number;
@@ -13,7 +14,11 @@ interface Message {
   isStatus?: boolean;
 }
 
-const ChatWindow: React.FC = () => {
+interface ChatWindowProps {
+  onCommand?: (command: string) => string;
+}
+
+const ChatWindow: React.FC<ChatWindowProps> = ({ onCommand }) => {
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "Hello, I'm IRIS. How can I help you today?", sender: 'iris' }
@@ -24,6 +29,7 @@ const ChatWindow: React.FC = () => {
   const [position, setPosition] = useState({ x: 100, y: 500 });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [zIndex, setZIndex] = useState(1);
 
   const { isConnected, sendMessage, ws } = useWebSocket('ws://localhost:8000/ws');
 
@@ -33,6 +39,7 @@ const ChatWindow: React.FC = () => {
   const [storedHeight, setStoredHeight] = useState<string | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    setZIndex(getNextZIndex());
     setDragging(true);
     setOffset({
       x: e.clientX - position.x,
@@ -99,6 +106,26 @@ const ChatWindow: React.FC = () => {
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '' || !isConnected) return;
+    
+    // Check if this is a widget command message
+    if (inputMessage.trim().toLowerCase().startsWith("widget ")) {
+      if (onCommand) {
+        const commandResponse = onCommand(inputMessage.trim());
+        if (commandResponse) {
+          // Display the response from command handling as a status message:
+          setMessages(prev => [...prev, {
+            id: prev.length + 1,
+            text: commandResponse,
+            sender: 'iris',
+            isStatus: true
+          }]);
+        }
+      }
+      setInputMessage(''); // Clear the input and don't send to websocket
+      return;
+    }
+    
+    // send message normally:
     const newMessage: Message = {
       id: messages.length + 1,
       text: inputMessage,
@@ -132,7 +159,7 @@ const ChatWindow: React.FC = () => {
   }, [minimized]);
 
   return (
-    <div ref={chatWindowRef} className={`chat-window ${minimized ? 'minimized' : ''}`} style={{ position: 'absolute', left: position.x, top: position.y }}>
+    <div ref={chatWindowRef} className={`chat-window ${minimized ? 'minimized' : ''}`} style={{ position: 'absolute', left: position.x, top: position.y, zIndex: zIndex }}>
       <ChatTitleBar title="CHAT" minimized={minimized} toggleMinimize={toggleMinimize} onMouseDown={handleMouseDown} />
       
       {!minimized && (

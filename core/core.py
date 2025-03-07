@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
-import asyncio
 from core.agents.iris_agent import IRISAgent
 from core.utils.logger import get_logger
 from core.tools.tool_manager import ToolManager

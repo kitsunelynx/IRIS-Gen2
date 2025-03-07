@@ -14,7 +14,7 @@ const ChatTitleBar: React.FC<ChatTitleBarProps> = ({ title, minimized, toggleMin
     <div className="chat-titlebar" onMouseDown={onMouseDown} style={{ cursor: 'move', userSelect: 'none' }}>
       <span className="chat-title">{title}</span>
       <button className="minimize-button" onClick={toggleMinimize}>
-        {minimized ? <ArrowUpwardIcon style={{ fontSize: 24 }} /> : <ArrowDownwardIcon style={{ fontSize: 24 }} />}
+        {minimized ? <span style={{ fontSize: 24 }}>+</span> : <span style={{ fontSize: 24 }}>–</span>}
       </button>
     </div>
   );

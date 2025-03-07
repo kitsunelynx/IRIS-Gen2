@@ -2,18 +2,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import '../components/ChatWindow.css';
+import { getNextZIndex } from '../utils/stackManager';
 
 const TimeWidget: React.FC = () => {
   const [minimized, setMinimized] = useState(false);
-  // Position this widget separately from the DateWidget (adjust as needed)
   const [position, setPosition] = useState({ x: 450, y: 300 });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [time, setTime] = useState(new Date());
+  const [zIndex, setZIndex] = useState(1);
 
   const toggleMinimize = () => setMinimized(!minimized);
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    setZIndex(getNextZIndex());
     setDragging(true);
     setOffset({
       x: e.clientX - position.x,
@@ -21,7 +23,6 @@ const TimeWidget: React.FC = () => {
     });
   };
 
-  // Use useCallback to memoize the handleMouseMove function
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (dragging) {
       setPosition({
@@ -47,7 +48,6 @@ const TimeWidget: React.FC = () => {
     };
   }, [dragging, handleMouseMove, handleMouseUp]);
 
-  // Update time every minute (no seconds displayed)
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
@@ -59,13 +59,14 @@ const TimeWidget: React.FC = () => {
 
   return (
     <div
-      className="chat-window"
+      className={`chat-window ${minimized ? 'widget-popout' : 'widget-popup'}`}
       style={{
         position: 'absolute',
         left: position.x,
         top: position.y,
         width: '200px',
         height: minimized ? '40px' : '80px',
+        zIndex: zIndex,
       }}
     >
       <div
@@ -75,7 +76,7 @@ const TimeWidget: React.FC = () => {
       >
         <span className="chat-title" style={{ fontSize: '0.9rem' }}>TIME</span>
         <button className="minimize-button" onClick={toggleMinimize}>
-          {minimized ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />}
+          {minimized ? <span style={{ fontSize: 20 }}>+</span> : <span style={{ fontSize: 20 }}>–</span>}
         </button>
       </div>
       {!minimized && (

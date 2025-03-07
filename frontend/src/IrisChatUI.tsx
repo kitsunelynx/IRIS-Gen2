@@ -4,6 +4,7 @@ import ChatWindow from './components/ChatWindow';
 import DateWidget from './components/DateWidget';
 import TimeWidget from './components/TimeWidget';
 import { ConnectionStatus } from './ConnectionStatus';
+import YouTubeWidget from './components/YouTubeWidget';
 
 const Container = styled.div`
   display: flex;
@@ -83,6 +84,36 @@ const IrisText = styled.div`
 `;
 
 const IrisChatUI: React.FC = () => {
+  // Widget visibility state – default open for date and time; youtube starts closed
+  const [widgets, setWidgets] = React.useState({
+    date: true,
+    time: true,
+    youtube: false,
+  });
+
+  // Command handler for widget commands coming from the chat window.
+  const handleWidgetCommand = (command: string): string => {
+    const tokens = command.split(" ");
+    if (tokens.length < 3) {
+      return "Invalid widget command. Usage: widget open|close <widget_name>";
+    }
+    const action = tokens[1].toLowerCase();
+    const widgetName = tokens[2].toLowerCase();
+    if (!["date", "time", "youtube"].includes(widgetName)) {
+      return `Unknown widget: ${widgetName}`;
+    }
+    if (action !== "open" && action !== "close") {
+      return "Invalid action. Use open or close.";
+    }
+  
+    const newState = action === "open";
+    setWidgets((prev) => ({
+      ...prev,
+      [widgetName]: newState,
+    }));
+    return `${widgetName} widget ${newState ? "opened" : "closed"}.`;
+  };
+
   return (
     <>
       <link 
@@ -99,10 +130,11 @@ const IrisChatUI: React.FC = () => {
           </IrisCircle>
         </IrisSection>
         <ChatSection>
-          <ChatWindow />
+          <ChatWindow onCommand={handleWidgetCommand} />
         </ChatSection>
-        <DateWidget />
-        <TimeWidget />
+        {widgets.date && <DateWidget />}
+        {widgets.time && <TimeWidget />}
+        {widgets.youtube && <YouTubeWidget videoId="dQw4w9WgXcQ" />}
       </Container>
     </>
   );
