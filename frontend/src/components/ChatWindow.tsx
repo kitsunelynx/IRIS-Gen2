@@ -16,9 +16,10 @@ interface Message {
 
 interface ChatWindowProps {
   onCommand?: (command: string) => string;
+  onVideoReceived?: (videoId: string) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ onCommand }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ onCommand, onVideoReceived }) => {
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "Hello, I'm IRIS. How can I help you today?", sender: 'iris' }
@@ -58,6 +59,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onCommand }) => {
 
   const handleMouseUp = () => {
     setDragging(false);
+    if (chatWindowRef.current) {
+      const rect = chatWindowRef.current.getBoundingClientRect();
+      // Get current minimum width/height of the body (defaulting to 0 if not set)
+      const currentMinWidth = parseInt(document.body.style.minWidth) || 0;
+      const currentMinHeight = parseInt(document.body.style.minHeight) || 0;
+      // Calculate new min dimensions based on the chat window's position
+      const newMinWidth = Math.max(currentMinWidth, rect.right);
+      const newMinHeight = Math.max(currentMinHeight, rect.bottom);
+      // Update the body's styles so that the workspace expands
+      document.body.style.minWidth = newMinWidth + "px";
+      document.body.style.minHeight = newMinHeight + "px";
+    }
   };
 
   useEffect(() => {
@@ -82,6 +95,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onCommand }) => {
           setMessages(prev => [...prev, { id: prev.length + 1, text: response.text, sender: 'iris', isStatus: true }]);
         } else {
           setMessages(prev => [...prev, { id: prev.length + 1, text: response.text, sender: 'iris', isStatus: false }]);
+        }
+        if (typeof response.text === "string") {
+          if (response.text.startsWith("YT_VIDEO_ID=")) {
+            const videoId = response.text.substring("YT_VIDEO_ID=".length).trim();
+            if (onVideoReceived) {
+              onVideoReceived(videoId);
+            }
+          } else if (response.text.startsWith("The first video id is:")) {
+            const videoId = response.text.substring("The first video id is:".length).trim();
+            if (onVideoReceived) {
+              onVideoReceived(videoId);
+            }
+          }
         }
       };
     }

@@ -7,7 +7,11 @@ import { getNextZIndex } from '../utils/stackManager';
 const ArrowUp: React.FC<{ size?: number }> = ({ size }) => <ArrowUpwardIcon style={{ fontSize: size }} />;
 const ArrowDown: React.FC<{ size?: number }> = ({ size }) => <ArrowDownwardIcon style={{ fontSize: size }} />;
 
-const DateWidget: React.FC = () => {
+interface DateWidgetProps {
+  onClose?: () => void;
+}
+
+const DateWidget: React.FC<DateWidgetProps> = (props) => {
   const [minimized, setMinimized] = useState(false);
   const [position, setPosition] = useState({ x: 450, y: 200 });
   const [dragging, setDragging] = useState(false);
@@ -82,6 +86,23 @@ const DateWidget: React.FC = () => {
         <button className="minimize-button" onClick={toggleMinimize}>
           {minimized ? <span style={{ fontSize: 20 }}>+</span> : <span style={{ fontSize: 20 }}>–</span>}
         </button>
+        {props.onClose && (
+          <button
+            className="close-button"
+            onClick={props.onClose}
+            style={{
+              marginLeft: '8px',
+              background: 'inherit',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0',
+              fontSize: 'inherit'
+            }}
+          >
+            X
+          </button>
+        )}
       </div>
       {!minimized && (
         <div

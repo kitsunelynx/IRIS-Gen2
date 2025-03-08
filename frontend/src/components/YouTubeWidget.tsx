@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import '../components/ChatWindow.css';
 import { getNextZIndex } from '../utils/stackManager';
 
-const YouTubeWidget: React.FC<{ videoId: string }> = ({ videoId }) => {
+interface YouTubeWidgetProps {
+  videoId: string;
+  onClose?: () => void;
+}
+
+const YouTubeWidget: React.FC<YouTubeWidgetProps> = ({ videoId, onClose }) => {
   const [minimized, setMinimized] = useState(false);
   const [position, setPosition] = useState({ x: 450, y: 400 }); // initial coordinates
   const [dragging, setDragging] = useState(false);
@@ -53,7 +58,7 @@ const YouTubeWidget: React.FC<{ videoId: string }> = ({ videoId }) => {
         left: position.x,
         top: position.y,
         width: '640px',
-        height: minimized ? '40px' : '360px',
+        height: minimized ? '200px' : '360px',
         zIndex: zIndex,
       }}
     >
@@ -66,28 +71,29 @@ const YouTubeWidget: React.FC<{ videoId: string }> = ({ videoId }) => {
         <button className="minimize-button" onClick={toggleMinimize}>
           {minimized ? <span style={{ fontSize: 24 }}>+</span> : <span style={{ fontSize: 24 }}>–</span>}
         </button>
+        {onClose && (
+          <button className="close-button" onClick={onClose}>×</button>
+        )}
       </div>
-      {!minimized && (
-        <div
-          className="chat-content"
-          style={{
-            padding: 0,
-            background: '#000',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <iframe
-            width="640"
-            height="360"
-            src={`https://www.youtube.com/embed/${videoId}`}
-            title="YOUTUBE"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          ></iframe>
-        </div>
-      )}
+      <div
+        className="chat-content"
+        style={{
+          padding: 0,
+          background: '#000',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <iframe
+          width={minimized ? "560" : "640"}
+          height={minimized ? "160" : "360"}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+          title="YOUTUBE"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        ></iframe>
+      </div>
     </div>
   );
 };

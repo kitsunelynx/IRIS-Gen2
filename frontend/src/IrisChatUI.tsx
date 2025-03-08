@@ -8,7 +8,8 @@ import YouTubeWidget from './components/YouTubeWidget';
 
 const Container = styled.div`
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
+  overflow: auto;
   background-color: #0d1b2a;
   font-family: 'Exo 2', sans-serif;
   position: relative;
@@ -91,6 +92,9 @@ const IrisChatUI: React.FC = () => {
     youtube: false,
   });
 
+  // New state for youtube video id
+  const [youtubeVideoId, setYoutubeVideoId] = React.useState<string>("");
+
   // Command handler for widget commands coming from the chat window.
   const handleWidgetCommand = (command: string): string => {
     const tokens = command.split(" ");
@@ -114,6 +118,15 @@ const IrisChatUI: React.FC = () => {
     return `${widgetName} widget ${newState ? "opened" : "closed"}.`;
   };
 
+  // New handler for incoming youtube video id updates.
+  const handleVideoReceived = (videoId: string) => {
+    setYoutubeVideoId(videoId);
+    setWidgets((prev) => ({
+      ...prev,
+      youtube: true,
+    }));
+  };
+
   return (
     <>
       <link 
@@ -130,11 +143,19 @@ const IrisChatUI: React.FC = () => {
           </IrisCircle>
         </IrisSection>
         <ChatSection>
-          <ChatWindow onCommand={handleWidgetCommand} />
+          <ChatWindow 
+            onCommand={handleWidgetCommand} 
+            onVideoReceived={handleVideoReceived} 
+          />
         </ChatSection>
-        {widgets.date && <DateWidget />}
+        {widgets.date && <DateWidget onClose={() => setWidgets(prev => ({ ...prev, date: false }))} />}
         {widgets.time && <TimeWidget />}
-        {widgets.youtube && <YouTubeWidget videoId="dQw4w9WgXcQ" />}
+        {widgets.youtube && youtubeVideoId && (
+          <YouTubeWidget 
+            videoId={youtubeVideoId}
+            onClose={() => setWidgets(prev => ({ ...prev, youtube: false }))}
+          />
+        )}
       </Container>
     </>
   );
