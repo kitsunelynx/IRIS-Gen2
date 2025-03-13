@@ -8,3 +8,5 @@ grokit
 python-dotenv
 wolframalpha
 pyttsx3
+youtubesearchpython
+youtube_transcript_api

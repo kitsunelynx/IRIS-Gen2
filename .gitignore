@@ -4,6 +4,8 @@ persistent_memory.id
 *.env
 *.pdf
 chatlog.json
+memory.json
+additional.id
 test.py
 alayn/
 additional/

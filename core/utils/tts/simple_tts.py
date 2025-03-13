@@ -17,7 +17,7 @@ class SimpleTTS:
 
         # Retrieve available voices from the engine
         voices = self.engine.getProperty("voices")
-        voice_target = config.get("voice", "Microsoft Zira")
+        voice_target = config.get("voice", "IVONA 2 Salli - US English female voice [22kHz]")
 
         logger.info("Available voices:")
         for voice in voices:

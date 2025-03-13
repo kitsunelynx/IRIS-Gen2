@@ -8,6 +8,7 @@ from io import BytesIO
 import time
 from core.utils.logger import get_logger
 from core.tools.tool_interface import ToolInterface, ToolContext
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Research:
     def __init__(self):
@@ -94,15 +95,19 @@ class Research:
 
     def research(self, queries: List[str]) -> str:
         self.logger.success("Initiating research for %d queries.", len(queries))
-        aggregated_results = ""
-        
-        for query in tqdm(queries, desc="Processing queries"):
-            self.logger.info("Researching query: %s", query)
-            result = self.search(query)
-            aggregated_results += f"\n\n=== Results for '{query}' ===\n{result}"
-            
+        aggregated_results = []
+        with ThreadPoolExecutor(max_workers=len(queries)) as executor:
+            future_to_query = {executor.submit(self.search, query): query for query in queries}
+            for future in tqdm(as_completed(future_to_query), total=len(queries), desc="Processing queries"):
+                query = future_to_query[future]
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    self.logger.error("Query %s generated an exception: %s", query, exc)
+                    result = f"Error processing query: {exc}"
+                aggregated_results.append(f"\n\n=== Results for '{query}' ===\n{result}")
         self.logger.success("Research completed successfully.")
-        return f"Research Data:\n{aggregated_results}"
+        return f"Research Data:\n{''.join(aggregated_results)}"
 
 class ResearchTool(ToolInterface):
     @property

@@ -1,41 +1,44 @@
 import os
 import json
+import datetime
 
-# Define the path to the persistent memory file within the data directory with .id extension
-MEMORY_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'memory.id')
+class MemoryManager:
+    def __init__(self, memory_file: str = None):
+        if memory_file is None:
+            self.memory_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'memory.json')
+        else:
+            self.memory_file = memory_file
+        self.memory = self.load_memory()
 
-
-def read_from_memory():
-    """Reads and returns the persistent memory data as a dictionary from a plain text file with key=value lines."""
-    data = {}
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r") as f:
-                lines = f.readlines()
-            for line in lines:
-                line = line.strip()
-                if line and "=" in line:
-                    key, value = line.split("=", 1)
-                    data[key.strip()] = value.strip()
-            return data
-        except IOError:
+    def load_memory(self) -> dict:
+        if os.path.exists(self.memory_file):
+            try:
+                with open(self.memory_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+                else:
+                    return {}
+            except Exception:
+                return {}
+        else:
             return {}
-    return {}
 
+    def save_memory(self) -> None:
+        data_dir = os.path.dirname(self.memory_file)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+        with open(self.memory_file, "w", encoding="utf-8") as f:
+            json.dump(self.memory, f, indent=2)
 
-def write_to_memory(data):
-    """Writes the provided dictionary to persistent memory as plain text key=value pairs."""
-    # Ensure the data directory exists
-    data_dir = os.path.dirname(MEMORY_FILE)
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-    with open(MEMORY_FILE, 'w') as f:
-        for key, value in data.items():
-            f.write(f"{key}={value}\n")
+    def set(self, key: str, value: str) -> None:
+        self.memory[key] = value
+        self.save_memory()
 
+    def get(self, key: str) -> str:
+        return self.memory.get(key, "")
 
-def append_to_memory(key, value):
-    """Reads current memory, updates with the given key-value pair, and writes back."""
-    current_data = read_from_memory()
-    current_data[key] = value
-    write_to_memory(current_data) 
+    def append(self, content: str) -> str:
+        key = "memory_" + datetime.datetime.now().isoformat()
+        self.set(key, content)
+        return key 

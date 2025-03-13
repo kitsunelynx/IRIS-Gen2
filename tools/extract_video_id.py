@@ -16,9 +16,9 @@ class ExtractYoutubeVideoIDTool(ToolInterface):
         """
         context.debug("Registering ExtractYoutubeVideoIDTool.")
         
-        def extract_video_id(query: str) -> str:
+        def extract_youtube_video_id(query: str) -> str:
             """
-            Search YouTube for the given query and return the id of the first video found.
+            Search YouTube for the given query and return the id of the first video found. Can be used to play videos in frontend.
             
             Parameters:
             - query: The search term (default is "Back in black").
@@ -26,6 +26,7 @@ class ExtractYoutubeVideoIDTool(ToolInterface):
             Returns:
             - The id of the first video result, or an empty string if no result is found.
             """
+            context.info(f"Extracting YouTube video ID for query: {query}")
             videos_search = VideosSearch(query)
             results = videos_search.result()
             
@@ -34,7 +35,7 @@ class ExtractYoutubeVideoIDTool(ToolInterface):
             
             return ""
         
-        return [extract_video_id]
+        return [extract_youtube_video_id]
 
 def register():
     """

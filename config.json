@@ -8,7 +8,7 @@
       },
     "top_p": 0.9,
     "seed": 42,
-    "temperature":0.25,
+    "temperature":0.30,
     "top_k": 64,
     "safety_settings": [
       {
@@ -37,10 +37,6 @@
   "default_voice_mode": false,
   "default_tts_enabled": false,
   "tts_config": {
-    "voice": "Microsoft Zira",
-    "advanced_tts_enabled": true,
-    "advanced_tts_voice": "af_heart",
-    "advanced_tts_lang": "a",
-    "advanced_tts_speed": 1
+    "voice": " IVONA 2 Salli - US English female voice [22kHz]"
   }
 } 

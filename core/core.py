@@ -38,6 +38,9 @@ class IRISCore:
         self.logger.success("Loading configuration...")
         self.config = ConfigManager()
 
+        # Login process for authorized users before initialization starts
+        self.current_user = self.login_user()
+
         self.logger.success("Loading chat log...")
         self.chatlog = self._load_chatlog()
 
@@ -45,7 +48,7 @@ class IRISCore:
         self.memory = []
 
         # Load system prompt from all files in the data directory (.id is preferred, .txt as fallback)
-        system_prompt = self._load_system_prompt()
+        system_prompt = self._load_system_prompt() + f"\nLogged in as: {self.current_user}"
         self.logger.success("System prompt loaded.")
 
         self.logger.success("Loading web search module...")
@@ -68,6 +71,10 @@ class IRISCore:
         from core.utils.tts import get_tts
         self.tts = get_tts()
 
+        # Instantiate the unified memory manager for persistent memory operations
+        from core.memory import MemoryManager
+        self.memory_manager = MemoryManager()
+
         self.logger.success("Loading agent...")
         self.agent = IRISAgent(system_prompt, None, self.config.config, tools=all_tools)
 
@@ -79,7 +86,7 @@ class IRISCore:
 
     def _load_system_prompt(self) -> str:
         data_dir = Path("data")
-        sysdt_files = sorted(data_dir.glob("*.id"))
+        sysdt_files = sorted(data_dir.glob("*.id"), reverse=True)
         if sysdt_files:
             system_prompt = "\n".join(f.read_text(encoding="utf-8") for f in sysdt_files)
         else:
@@ -168,23 +175,16 @@ class IRISCore:
 
     @handle_errors(default_return=None)
     def store_memory(self, content: str) -> None:
-        # Use the new persistent memory module (core/memory.py) to store content with a timestamp key
-        from core.memory import append_to_memory
-        import datetime
-        key = "memory_" + datetime.datetime.now().isoformat()
-        append_to_memory(key, content)
+        self.memory_manager.append(content)
 
     @handle_errors(default_return="Error writing persistent memory")
     def write_persistent_memory(self, key: str, value: str) -> str:
-        from core.memory import append_to_memory
-        append_to_memory(key, value)
+        self.memory_manager.set(key, value)
         return f"Persistent memory written for key: {key}"
 
     @handle_errors(default_return="Error reading persistent memory")
     def read_persistent_memory(self, key: str) -> str:
-        from core.memory import read_from_memory
-        data = read_from_memory()
-        return data.get(key, "")
+        return self.memory_manager.get(key)
 
     def _save_chatlog(self):
         try:
@@ -200,10 +200,12 @@ class IRISCore:
             self.logger.error(f"Chat log Save Error: {e}")
 
     def run(self):
+        from datetime import datetime  # Added to format timestamps
         self.logger.success("IRISCore running. Type 'exit' or 'quit' to close the program.")
         while True:
             try:
-                user_input = self.ui.get_input("IRIS> ")
+                # Updated: use the redesigned prompt from UIHandler with default "You: "
+                user_input = self.ui.get_input()
             except KeyboardInterrupt:
                 self.logger.success("Keyboard interrupt detected. Exiting IRISCore gracefully...")
                 break
@@ -213,20 +215,33 @@ class IRISCore:
                 self.logger.success("Exiting IRISCore...")
                 break
 
-            # Handle TTS toggle commands
+            # Handle TTS toggle commands with updated chat bubble output
             if command == "/tts on":
                 self.tts_enabled = True
-                self.ui.print_message("Text-to-speech enabled.", style="info")
+                self.ui.print_message("Text-to-speech enabled.", style="info", sender="System", timestamp=datetime.now().strftime("%H:%M:%S"))
                 continue
             elif command == "/tts off":
                 self.tts_enabled = False
-                self.ui.print_message("Text-to-speech disabled.", style="info")
+                self.ui.print_message("Text-to-speech disabled.", style="info", sender="System", timestamp=datetime.now().strftime("%H:%M:%S"))
                 continue
 
             if not user_input.strip():
                 continue
 
+            # Echo the user's message in a chat bubble with timestamp
+            self.ui.print_message(user_input, sender="You", timestamp=datetime.now().strftime("%H:%M:%S"))
+            
             response = self.agent.send_message(user_input)
-            self.ui.print_message(response, style="info")
+            # Display the agent's response as a chat bubble with timestamp and info style
+            self.ui.print_message(response, style="info", sender="IRIS", timestamp=datetime.now().strftime("%H:%M:%S"))
             if self.tts_enabled:
                 self.tts.speak(response)
+
+    def login_user(self) -> str:
+        valid_users = ["kitsunelynx0", "seyon0"]
+        while True:
+            username = self.ui.get_input("Enter username: ")
+            if username.lower() in valid_users:
+                return username.capitalize()
+            else:
+                self.ui.print_message("Invalid username.", style="error")

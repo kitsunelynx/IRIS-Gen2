@@ -23,6 +23,14 @@ class GrokTool(ToolInterface):
         context.success("Registering GrokTool.")
 
         def grok(query: str) -> str:
+            """
+            Perform a Grok analysis on the input query.
+
+            Args:
+                query (str): The input query to analyze. Give the query in pov of a user.
+
+            Returns:
+            """
             context.info(f"Performing Grok analysis for: {query}")
             result = grok_llm.generate(query, model_id='grok-3')
             context.success("Grok analysis completed.")
